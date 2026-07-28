@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Feature 3 — Keep Size Context: Scenario Review</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --sub:#5a5a5a; --line:#e2e0d8; --bg:#fdfcf9; --card:#ffffff;
+    --keep:#27500a; --keep-bg:#eaf3de;
+    --drop:#712b13; --drop-bg:#faece7;
+    --open:#854f0b; --open-bg:#faeeda;
+    --na:#444441; --na-bg:#f1efe8;
+    --cat:#0c447c; --cat-bg:#e6f1fb;
+    --size:#3c3489; --size-bg:#eeedfe;
+    --gender:#085041; --gender-bg:#e1f5ee;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); margin:0; padding:32px 24px 80px; line-height:1.55;
+  }
+  .wrap{max-width:1280px; margin:0 auto;}
+  .topbar{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:4px;}
+  h1{font-size:22px; font-weight:600; margin:0 0 4px;}
+  .subtitle{color:var(--sub); font-size:14px; margin:0 0 24px;}
+
+  button{padding:9px 16px; border-radius:6px; border:none; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit;}
+  .btn-primary{background:#1a1a1a; color:#fff; white-space:nowrap;}
+  .btn-primary:hover{background:#000;}
+  .btn-ghost{background:#fff; color:var(--ink); border:1px solid var(--line);}
+  .btn-ghost:hover{background:#f5f3ee;}
+
+  .agenda{background:var(--card); border:1px solid var(--line); border-left:4px solid #333; border-radius:8px; padding:16px 22px; margin-bottom:16px;}
+  .agenda h2{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--sub); margin:0 0 8px; font-weight:600;}
+  .agenda ol{margin:0; padding-left:18px; font-size:14px;}
+  .agenda li{margin-bottom:4px;}
+  .agenda .settled{color:var(--sub); font-weight:400;}
+
+  .headline{background:var(--open-bg); border:1px solid #f0d9a8; border-radius:8px; padding:16px 22px; margin-bottom:28px;}
+  .headline h2{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--open); margin:0 0 6px; font-weight:600;}
+  .headline p{margin:0 0 6px; font-size:14px;} .headline p:last-child{margin-bottom:0;}
+
+  .section-title{font-size:16px; font-weight:600; margin:32px 0 2px;}
+  .section-sub{font-size:13px; color:var(--sub); margin:0 0 16px;}
+
+  .scenario-row{display:flex; align-items:stretch; gap:0; background:var(--card); border:1px solid var(--line); border-radius:8px; margin-bottom:14px; overflow:hidden;}
+  .step{flex:1; min-width:0; padding:12px 14px; border-right:1px solid var(--line); position:relative;}
+  .step:last-child{border-right:none;}
+  .step-label{font-size:10px; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); font-weight:600; margin-bottom:6px; display:block;}
+  .step-arrow{display:flex; align-items:center; justify-content:center; width:20px; color:#c9c6ba; font-size:14px; flex-shrink:0;}
+  .step-text{font-size:13.5px; outline:none; min-height:18px;}
+  .query-text{font-weight:700; font-size:15px; color:var(--ink);}
+  .actor{font-weight:700;}
+  .step-text[contenteditable]:hover{background:#fbfaf6; border-radius:4px;}
+  .step-text[contenteditable]:focus{background:#fff8ec; border-radius:4px; box-shadow:0 0 0 1px #e8d9b0;}
+  .row-id{font-weight:600; font-size:12px; color:var(--sub); display:flex; align-items:center; padding:0 10px; background:#f5f3ee; flex-shrink:0; width:34px; justify-content:center;}
+  .row-remove{background:none; border:none; color:var(--sub); font-size:16px; cursor:pointer; padding:0 8px; flex-shrink:0;}
+  .row-remove:hover{color:var(--drop);}
+
+  .tag{display:inline-block; padding:2px 8px; border-radius:5px; font-size:11.5px; font-weight:600; margin:2px 3px 2px 0; outline:none;}
+  .tag-category{background:var(--cat-bg); color:var(--cat);}
+  .tag-size{background:var(--size-bg); color:var(--size);}
+  .tag-gender{background:var(--gender-bg); color:var(--gender);}
+
+  .pill{display:inline-block; padding:2px 8px; border-radius:20px; font-size:11.5px; font-weight:600; margin:2px 3px 2px 0; outline:none;}
+  .pill-match{background:var(--keep-bg); color:var(--keep);}
+  .pill-mismatch{background:var(--drop-bg); color:var(--drop);}
+  .pill-na{background:var(--na-bg); color:var(--na);}
+
+  .add-inline{display:flex; justify-content:center; margin:8px 0 24px;}
+  .add-inline button{background:#fff; border:1px dashed #c9c6ba; color:var(--sub); font-weight:500;}
+  .add-inline button:hover{background:#f5f3ee; color:var(--ink);}
+
+  table{width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  thead th{background:#f5f3ee; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); padding:10px 12px; border-bottom:1px solid var(--line); font-weight:600;}
+  tbody td{padding:10px 12px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  td[contenteditable]:hover{background:#fbfaf6;}
+  td[contenteditable]:focus{background:#fff8ec; outline:none;}
+  td.id{font-weight:600; color:var(--sub); white-space:nowrap;}
+  select.status-select{border:none; background:transparent; font-size:12px; font-weight:600; padding:3px 6px; border-radius:6px; cursor:pointer;}
+  select.status-select.st-agreed{background:var(--keep-bg); color:var(--keep);}
+  select.status-select.st-open{background:var(--open-bg); color:var(--open);}
+  select.status-select.st-new{background:var(--drop-bg); color:var(--drop);}
+  .cell-remove{background:none; border:none; color:var(--sub); cursor:pointer; font-size:15px;}
+  .cell-remove:hover{color:var(--drop);}
+
+  .legend{display:flex; gap:18px; margin-top:14px; font-size:12px; color:var(--sub); flex-wrap:wrap; align-items:center;}
+  .legend span{display:inline-flex; align-items:center; gap:5px;}
+  .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+
+  .overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); align-items:center; justify-content:center; z-index:50;}
+  .overlay.show{display:flex;}
+  .modal{background:#fff; border-radius:10px; padding:24px 26px; width:360px; max-width:90vw;}
+  .modal h3{margin:0 0 6px; font-size:16px;}
+  .modal p{margin:0 0 18px; font-size:13px; color:var(--sub);}
+  .modal .opt{display:block; width:100%; text-align:left; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:#fff; margin-bottom:10px; cursor:pointer; font-size:13.5px;}
+  .modal .opt:hover{background:#f5f3ee;}
+  .modal .opt b{display:block; font-size:13.5px; margin-bottom:2px;}
+  .modal .opt span{font-size:12px; color:var(--sub); font-weight:400;}
+  .modal .close-row{text-align:right; margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1>Feature 3 — Keep Size Context: scenario review</h1>
+      <p class="subtitle">Size Filter V2 · prep doc for eng sync (Karen / Nikhil / Sharad / Anusha)</p>
+    </div>
+    <button class="btn-primary" onclick="openSaveModal()">Save meeting notes</button>
+  </div>
+
+  <div class="agenda">
+    <h2>Agenda</h2>
+    <ol>
+      <li>Goal: implement the PRD as originally written — auto-drop on category mismatch. <span class="settled">(already the intended design, and Karen agreed to this in the last sync — not up for re-debate)</span></li>
+      <li>Walk the scenarios below, confirm nothing breaks the auto-drop logic</li>
+      <li>Decide the mechanics: how does the server correctly detect a fresh selection vs. a carried-over filter, without misfiring</li>
+      <li>Assign owners for anything still open after this sync</li>
+    </ol>
+  </div>
+
+  <div class="headline">
+    <h2>Main issue</h2>
+    <p><b>Goal:</b> if the user is still browsing the same category after refining their query, keep the size filter applied — auto-drop it silently if the category no longer matches. This is the PRD as written.</p>
+    <p><b>What's actually left to solve:</b> the <span class="actor">server</span> can't yet tell "user just picked this filter, first request" apart from "this filter is being carried over from an earlier, different query" — so it can't safely auto-drop without risking a false drop on a filter the user just set. That mechanic is the only open item.</p>
+  </div>
+
+  <div class="section-title">Core scenarios</div>
+  <p class="section-sub">Each row: query 1 submitted → user applies Select Size → query 2 submitted → server compares → result. Click any text to edit.</p>
+
+  <div id="core-scenarios">
+
+    <div class="scenario-row" data-kind="core">
+      <div class="row-id">S1</div>
+      <div class="step">
+        <span class="step-label">1 · query 1 submitted</span>
+        <div class="step-text query-text" contenteditable="true">"nike shoes"</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">2 · Select Size applied</span>
+        <div class="step-text"><span class="tag tag-gender" contenteditable="true">Gender: Men</span><span class="tag tag-category" contenteditable="true">Category: Shoes</span><span class="tag tag-size" contenteditable="true">Size: 10</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">3 · query 2 submitted → <span class="actor">client</span> sends</span>
+        <div class="step-text query-text" contenteditable="true">"adidas sneakers"</div>
+        <div class="step-text" style="margin-top:4px; color:var(--sub); font-size:12px;">query + gender tag + category tag + size tag</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">4 · <span class="actor">server</span> compares (FE result vs. filter)</span>
+        <div class="step-text"><span class="pill pill-match" contenteditable="true">Category: match (sneakers ~ shoes)</span><span class="pill pill-na" contenteditable="true">Gender: not detected → treated as match</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">5 · <span class="actor">server</span> returns → result</span>
+        <div class="step-text" contenteditable="true">KEEP — most common real pattern: brand swap, same category, no explicit gender either time</div>
+      </div>
+      <button class="row-remove" onclick="this.closest('.scenario-row').remove()" title="remove">×</button>
+    </div>
+
+    <div class="scenario-row" data-kind="core">
+      <div class="row-id">S2</div>
+      <div class="step">
+        <span class="step-label">1 · query 1 submitted</span>
+        <div class="step-text query-text" contenteditable="true">"nike shoes"</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">2 · Select Size applied</span>
+        <div class="step-text"><span class="tag tag-gender" contenteditable="true">Gender: Men</span><span class="tag tag-category" contenteditable="true">Category: Shoes</span><span class="tag tag-size" contenteditable="true">Size: 10</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">3 · query 2 submitted → <span class="actor">client</span> sends</span>
+        <div class="step-text query-text" contenteditable="true">"nike bags"</div>
+        <div class="step-text" style="margin-top:4px; color:var(--sub); font-size:12px;">query + gender tag + category tag + size tag</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">4 · <span class="actor">server</span> compares (FE result vs. filter)</span>
+        <div class="step-text"><span class="pill pill-mismatch" contenteditable="true">Category: mismatch</span><span class="pill pill-na" contenteditable="true">Gender: n/a (category already broke)</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">5 · <span class="actor">server</span> returns → result</span>
+        <div class="step-text" contenteditable="true">DROP (auto, silent) — clean results for the new query</div>
+      </div>
+      <button class="row-remove" onclick="this.closest('.scenario-row').remove()" title="remove">×</button>
+    </div>
+
+    <div class="scenario-row" data-kind="core">
+      <div class="row-id">S3</div>
+      <div class="step">
+        <span class="step-label">1 · query 1 submitted</span>
+        <div class="step-text query-text" contenteditable="true">"nike shoes"</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">2 · Select Size applied</span>
+        <div class="step-text"><span class="tag tag-gender" contenteditable="true">Gender: Men</span><span class="tag tag-category" contenteditable="true">Category: Shoes</span><span class="tag tag-size" contenteditable="true">Size: 10</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">3 · query 2 submitted → <span class="actor">client</span> sends</span>
+        <div class="step-text query-text" contenteditable="true">"nike"</div>
+        <div class="step-text" style="margin-top:4px; color:var(--sub); font-size:12px;">query + gender tag + category tag + size tag</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">4 · <span class="actor">server</span> compares (FE result vs. filter)</span>
+        <div class="step-text"><span class="pill pill-na" contenteditable="true">Category: not extracted (brand only)</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">5 · <span class="actor">server</span> returns → result</span>
+        <div class="step-text" contenteditable="true">DROP (PRD default — conservative fallback)</div>
+      </div>
+      <button class="row-remove" onclick="this.closest('.scenario-row').remove()" title="remove">×</button>
+    </div>
+
+    <div class="scenario-row" data-kind="core">
+      <div class="row-id">S4</div>
+      <div class="step">
+        <span class="step-label">1 · query 1 submitted</span>
+        <div class="step-text query-text" contenteditable="true">"men's shoes"</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">2 · Select Size applied</span>
+        <div class="step-text"><span class="tag tag-gender" contenteditable="true">Gender: Men</span><span class="tag tag-category" contenteditable="true">Category: Shoes</span><span class="tag tag-size" contenteditable="true">Size: 10</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">3 · query 2 submitted → <span class="actor">client</span> sends</span>
+        <div class="step-text query-text" contenteditable="true">"women's shoes"</div>
+        <div class="step-text" style="margin-top:4px; color:var(--sub); font-size:12px;">query + gender tag + category tag + size tag</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">4 · <span class="actor">server</span> compares (FE result vs. filter)</span>
+        <div class="step-text"><span class="pill pill-match" contenteditable="true">Category: match</span><span class="pill pill-mismatch" contenteditable="true">Gender: mismatch</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">5 · <span class="actor">server</span> returns → result</span>
+        <div class="step-text" contenteditable="true">DROP — explicit gender conflict (less common than S1/S5, but real — e.g. shopping for someone else)</div>
+      </div>
+      <button class="row-remove" onclick="this.closest('.scenario-row').remove()" title="remove">×</button>
+    </div>
+
+    <div class="scenario-row" data-kind="core">
+      <div class="row-id">S5</div>
+      <div class="step">
+        <span class="step-label">1 · query 1 submitted</span>
+        <div class="step-text query-text" contenteditable="true">"men's shoes"</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">2 · Select Size applied</span>
+        <div class="step-text"><span class="tag tag-gender" contenteditable="true">Gender: Men</span><span class="tag tag-category" contenteditable="true">Category: Shoes</span><span class="tag tag-size" contenteditable="true">Size: 10</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">3 · query 2 submitted → <span class="actor">client</span> sends</span>
+        <div class="step-text query-text" contenteditable="true">"nike shoes"</div>
+        <div class="step-text" style="margin-top:4px; color:var(--sub); font-size:12px;">query + gender tag + category tag + size tag</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">4 · <span class="actor">server</span> compares (FE result vs. filter)</span>
+        <div class="step-text"><span class="pill pill-match" contenteditable="true">Category: match</span><span class="pill pill-na" contenteditable="true">Gender: not detected → treated as match</span></div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <span class="step-label">5 · <span class="actor">server</span> returns → result</span>
+        <div class="step-text" contenteditable="true">KEEP — very common: user drops the gender word once brand/category is established</div>
+      </div>
+      <button class="row-remove" onclick="this.closest('.scenario-row').remove()" title="remove">×</button>
+    </div>
+
+  </div>
+  <div class="add-inline"><button onclick="addCoreScenario()">+ Add scenario</button></div>
+
+  <div class="section-title">Edge cases and open questions</div>
+  <p class="section-sub">Not a checklist to read aloud. Skim <b style="color:var(--keep)">resolved</b> rows for confirmation only, spend meeting time on <b style="color:var(--open)">open</b> rows, and add anything new live as it comes up — that's what <b style="color:var(--drop)">new</b> is for.</p>
+  <table>
+    <thead><tr><th style="width:46px;">#</th><th>Scenario</th><th>Why it matters</th><th style="width:150px;">Status</th><th style="width:32px;"></th></tr></thead>
+    <tbody id="edge-table">
+      <tr>
+        <td class="id">E1</td>
+        <td contenteditable="true">User applies Select Size on query 1, smart-preview suggested a different category than what the user actually picked (e.g. query "nike" suggested shoes, user picks jackets instead) — no query 2 submitted yet.</td>
+        <td contenteditable="true">Must not trigger a mismatch check — no new query exists yet. Once "current filter category" is defined as whatever the user actually selected, this collapses into the same rule as S1–S5.</td>
+        <td><select class="status-select st-agreed" onchange="restyleSelect(this)"><option value="agreed" selected>resolved</option><option value="open">open</option><option value="new">new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+      <tr>
+        <td class="id">E2</td>
+        <td contenteditable="true">The "fresh selection vs. carried-over filter" distinction — server can't currently tell these apart from the request shape alone.</td>
+        <td contenteditable="true">Needed before auto-drop can be safely implemented. Likely fix: <span class="actor">client</span> compares the new query text to the last query text it sent, and only tells the <span class="actor">server</span> to run mismatch evaluation when they differ.</td>
+        <td><select class="status-select st-open" onchange="restyleSelect(this)"><option value="agreed">resolved</option><option value="open" selected>open</option><option value="new">new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+      <tr>
+        <td class="id">E3</td>
+        <td contenteditable="true">User keeps their explicitly-chosen filter (e.g. jackets, from E1), then submits a genuinely new query 2 with different category text (e.g. "nike pants").</td>
+        <td contenteditable="true">Category mismatch (jackets ≠ pants) — evaluate same as S2, or exception because the filter was the user's own deliberate pick? Flagged as rare, never resolved.</td>
+        <td><select class="status-select st-open" onchange="restyleSelect(this)"><option value="agreed">resolved</option><option value="open" selected>open</option><option value="new">new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+      <tr>
+        <td class="id">E4</td>
+        <td contenteditable="true">Filter is KEPT through query 2, then query 3 is submitted.</td>
+        <td contenteditable="true">Comparison basis undefined — does query 3 compare against the original filter category, or something else? Never discussed.</td>
+        <td><select class="status-select st-new" onchange="restyleSelect(this)"><option value="agreed">resolved</option><option value="open">open</option><option value="new" selected>new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+      <tr>
+        <td class="id">E5</td>
+        <td contenteditable="true">Filter is DROPPED on mismatch, then a later query returns to the original category.</td>
+        <td contenteditable="true">Does the dropped filter auto-restore, or does the user reselect from scratch? Never discussed.</td>
+        <td><select class="status-select st-new" onchange="restyleSelect(this)"><option value="agreed">resolved</option><option value="open">open</option><option value="new" selected>new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+      <tr>
+        <td class="id">E6</td>
+        <td contenteditable="true">User changes the category filter chip directly (not the query text) while a size filter is active.</td>
+        <td contenteditable="true">This is Fix 1's territory. Could it fire alongside a Feature 3 query-based check and conflict? Not addressed in either spec.</td>
+        <td><select class="status-select st-new" onchange="restyleSelect(this)"><option value="agreed">resolved</option><option value="open">open</option><option value="new" selected>new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+      <tr>
+        <td class="id">E7</td>
+        <td contenteditable="true">Same query resubmitted verbatim, or pull-to-refresh.</td>
+        <td contenteditable="true">Should be a trivial match — worth confirming explicitly rather than assuming.</td>
+        <td><select class="status-select st-open" onchange="restyleSelect(this)"><option value="agreed">resolved</option><option value="open" selected>open</option><option value="new">new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+      <tr>
+        <td class="id">E8</td>
+        <td contenteditable="true">Filter mode is My Size or All (not Select Size).</td>
+        <td contenteditable="true">Feature 3 shouldn't apply here — persistence is governed by Fix 1 instead. Worth confirming this boundary out loud.</td>
+        <td><select class="status-select st-agreed" onchange="restyleSelect(this)"><option value="agreed" selected>resolved</option><option value="open">open</option><option value="new">new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+      <tr>
+        <td class="id">E9</td>
+        <td contenteditable="true">S1's KEEP depends on the FE recognizing "sneakers" and "shoes" as the same category (a synonym/taxonomy match), not just exact text match.</td>
+        <td contenteditable="true">This is a dependency on the existing V1 rule-based extractor's coverage — not something Feature 3's logic controls, but it directly affects how often real users actually get a KEEP. Worth flagging as a dependency, not a blocker.</td>
+        <td><select class="status-select st-new" onchange="restyleSelect(this)"><option value="agreed">resolved</option><option value="open">open</option><option value="new" selected>new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+      <tr>
+        <td class="id">E10</td>
+        <td contenteditable="true">Mid-session, user manually reopens Select Size and switches the category themselves (e.g. shoes → bags) — no new query submitted, they just re-picked.</td>
+        <td contenteditable="true">Out of scope for Feature 3 itself, but whatever "current filter" tracking mechanism we decide for E2 needs to handle this gracefully — the baseline that later KEEP/DROP comparisons run against should update to the new pick.</td>
+        <td><select class="status-select st-new" onchange="restyleSelect(this)"><option value="agreed">resolved</option><option value="open">open</option><option value="new" selected>new</option></select></td>
+        <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="add-inline"><button onclick="addEdgeCase()">+ Add edge case</button></div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:#27500a;"></span> resolved / agreed</span>
+    <span><span class="dot" style="background:#854f0b;"></span> open — needs a decision</span>
+    <span><span class="dot" style="background:#712b13;"></span> new — surfaced live</span>
+    <span><span class="tag tag-category">Category</span> <span class="tag tag-size">Size</span> <span class="tag tag-gender">Gender</span></span>
+  </div>
+
+</div>
+
+<div class="overlay" id="save-overlay">
+  <div class="modal">
+    <h3>Save meeting notes</h3>
+    <p>Everything you edited on this page — pick how you want to keep it.</p>
+    <button class="opt" onclick="downloadHTML()"><b>Download updated page (.html)</b><span>Full page with all your edits, ready to reopen or re-upload.</span></button>
+    <button class="opt" onclick="downloadNotes()"><b>Download as plain notes (.txt)</b><span>Lightweight text summary of every scenario and edge case.</span></button>
+    <div class="close-row"><button class="btn-ghost" onclick="closeSaveModal()">Cancel</button></div>
+  </div>
+</div>
+
+<script>
+let coreCount = 6, edgeCount = 10;
+
+function openSaveModal(){ document.getElementById('save-overlay').classList.add('show'); }
+function closeSaveModal(){ document.getElementById('save-overlay').classList.remove('show'); }
+
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], {type: mime});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+function downloadHTML(){
+  const clone = document.documentElement.cloneNode(true);
+  clone.querySelector('#save-overlay').classList.remove('show');
+  const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+  downloadFile('feature3_scenarios_' + dateStamp() + '.html', html, 'text/html');
+  closeSaveModal();
+}
+
+function downloadNotes(){
+  let out = 'FEATURE 3 — KEEP SIZE CONTEXT — MEETING NOTES\n' + dateStamp() + '\n\n';
+  out += '=== CORE SCENARIOS ===\n\n';
+  document.querySelectorAll('#core-scenarios .scenario-row').forEach(row=>{
+    const id = row.querySelector('.row-id').innerText.trim();
+    const steps = [...row.querySelectorAll('.step')].map(s=>s.innerText.trim().replace(/\n+/g,' | '));
+    out += id + '\n';
+    steps.forEach((s,i)=>{ out += '  ' + (i+1) + '. ' + s + '\n'; });
+    out += '\n';
+  });
+  out += '=== EDGE CASES ===\n\n';
+  document.querySelectorAll('#edge-table tr').forEach(row=>{
+    const cells = row.querySelectorAll('td');
+    if(cells.length < 3) return;
+    const id = cells[0].innerText.trim();
+    const scenario = cells[1].innerText.trim();
+    const why = cells[2].innerText.trim();
+    const status = row.querySelector('select') ? row.querySelector('select').value : '';
+    out += id + ' [' + status + ']\n  Scenario: ' + scenario + '\n  Why: ' + why + '\n\n';
+  });
+  downloadFile('feature3_notes_' + dateStamp() + '.txt', out, 'text/plain');
+  closeSaveModal();
+}
+
+function dateStamp(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function restyleSelect(sel){
+  sel.className = 'status-select st-' + sel.value;
+}
+
+function addCoreScenario(){
+  coreCount++;
+  const id = 'S' + coreCount;
+  const div = document.createElement('div');
+  div.className = 'scenario-row'; div.dataset.kind = 'core';
+  div.innerHTML = `
+    <div class="row-id">${id}</div>
+    <div class="step"><span class="step-label">1 · query 1 submitted</span><div class="step-text query-text" contenteditable="true">click to edit</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><span class="step-label">2 · Select Size applied</span><div class="step-text"><span class="tag tag-gender" contenteditable="true">Gender: —</span><span class="tag tag-category" contenteditable="true">Category: —</span><span class="tag tag-size" contenteditable="true">Size: —</span></div></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><span class="step-label">3 · query 2 submitted → <span class="actor">client</span> sends</span><div class="step-text query-text" contenteditable="true">click to edit</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><span class="step-label">4 · <span class="actor">server</span> compares</span><div class="step-text"><span class="pill pill-na" contenteditable="true">Category: —</span><span class="pill pill-na" contenteditable="true">Gender: —</span></div></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><span class="step-label">5 · <span class="actor">server</span> returns → result</span><div class="step-text" contenteditable="true">click to edit</div></div>
+    <button class="row-remove" onclick="this.closest('.scenario-row').remove()" title="remove">×</button>
+  `;
+  document.getElementById('core-scenarios').appendChild(div);
+  div.querySelector('.step-text[contenteditable]').focus();
+}
+
+function addEdgeCase(){
+  edgeCount++;
+  const id = 'E' + edgeCount;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="id">${id}</td>
+    <td contenteditable="true">click to edit — describe the scenario</td>
+    <td contenteditable="true">click to edit — why it matters</td>
+    <td><select class="status-select st-new" onchange="restyleSelect(this)"><option value="agreed">resolved</option><option value="open">open</option><option value="new" selected>new</option></select></td>
+    <td><button class="cell-remove" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  document.getElementById('edge-table').appendChild(tr);
+  tr.querySelectorAll('td[contenteditable]')[0].focus();
+}
+</script>
+</body>
+</html>
